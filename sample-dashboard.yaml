@@ -1,0 +1,65 @@
+# ============================================================
+# Sample Lovelace Dashboard for MTR Network Monitor
+# ============================================================
+# Copy this into a dashboard view or paste into your
+# raw configuration editor.
+#
+# Adjust entity IDs to match your installation.
+# Entity IDs are generated as:
+#   binary_sensor.<host_slug>_reachable
+#   sensor.<host_slug>_hop_<N>_rtt
+#   sensor.<host_slug>_hop_<N>_loss
+#
+# For host "8.8.8.8" the slug becomes "8_8_8_8".
+
+title: Network Monitor
+views:
+  - title: Network
+    path: network
+    icon: mdi:network
+    cards:
+
+      # ----------------------------------------------------------
+      # OPTION 1: Destination-only status card
+      # ----------------------------------------------------------
+      - type: custom:mtr-destination-card
+        title: "8.8.8.8 (Google DNS)"
+        destination_entity: binary_sensor.8_8_8_8_reachable
+        # Point to the LAST hop RTT/loss sensor for destination metrics.
+        # Replace N with the actual last hop number after first run.
+        rtt_entity: sensor.8_8_8_8_hop_8_rtt
+        loss_entity: sensor.8_8_8_8_hop_8_loss
+
+      # ----------------------------------------------------------
+      # OPTION 2: Full traceroute / MTR card  (all hops)
+      # ----------------------------------------------------------
+      - type: custom:mtr-traceroute-card
+        title: "Path to 8.8.8.8"
+        destination_entity: binary_sensor.8_8_8_8_reachable
+        rtt_sensors:
+          - sensor.8_8_8_8_hop_1_rtt
+          - sensor.8_8_8_8_hop_2_rtt
+          - sensor.8_8_8_8_hop_3_rtt
+          - sensor.8_8_8_8_hop_4_rtt
+          - sensor.8_8_8_8_hop_5_rtt
+          - sensor.8_8_8_8_hop_6_rtt
+          - sensor.8_8_8_8_hop_7_rtt
+          - sensor.8_8_8_8_hop_8_rtt
+        loss_sensors:
+          - sensor.8_8_8_8_hop_1_loss
+          - sensor.8_8_8_8_hop_2_loss
+          - sensor.8_8_8_8_hop_3_loss
+          - sensor.8_8_8_8_hop_4_loss
+          - sensor.8_8_8_8_hop_5_loss
+          - sensor.8_8_8_8_hop_6_loss
+          - sensor.8_8_8_8_hop_7_loss
+          - sensor.8_8_8_8_hop_8_loss
+
+      # ----------------------------------------------------------
+      # Additional monitor: TCP port 443 to cloudflare.com
+      # ----------------------------------------------------------
+      - type: custom:mtr-destination-card
+        title: "cloudflare.com:443 (TCP)"
+        destination_entity: binary_sensor.cloudflare_com_reachable
+        rtt_entity: sensor.cloudflare_com_hop_6_rtt
+        loss_entity: sensor.cloudflare_com_hop_6_loss

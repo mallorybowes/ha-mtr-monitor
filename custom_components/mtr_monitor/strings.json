@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MTR Network Monitor",
+        "description": "Configure network path monitoring to a destination host.",
+        "data": {
+          "name": "Monitor Name",
+          "host": "Destination Host / IP",
+          "protocol": "Protocol",
+          "port": "Port (TCP/UDP only)",
+          "interval": "Polling Interval (seconds)",
+          "max_hops": "Max Hops (TTL)",
+          "count": "Ping Count per Probe",
+          "timeout": "Probe Timeout (seconds)",
+          "packet_interval": "Packet Interval (seconds, 0 = no limit)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach destination host",
+      "invalid_host": "Invalid hostname or IP address",
+      "invalid_port": "Port must be between 1 and 65535",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This host is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "MTR Monitor Options",
+        "data": {
+          "protocol": "Protocol",
+          "port": "Port (TCP/UDP only)",
+          "interval": "Polling Interval (seconds)",
+          "max_hops": "Max Hops (TTL)",
+          "count": "Ping Count per Probe",
+          "timeout": "Probe Timeout (seconds)",
+          "packet_interval": "Packet Interval (seconds, 0 = no limit)"
+        }
+      }
+    }
+  }
+}
