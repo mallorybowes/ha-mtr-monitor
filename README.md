@@ -1,4 +1,4 @@
-# MTR Network Monitor — Home Assistant Custom Integration
+# MTR-like Network Monitor — Home Assistant Custom Integration
 
 Monitor a destination host and every hop along the path, exactly like the
 `mtr` command-line tool, directly inside Home Assistant.
