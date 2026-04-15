@@ -43,15 +43,16 @@ Monitor a destination host and every hop along the path, exactly like the
 
 1. Copy the `custom_components/mtr_monitor/` folder into your
    `config/custom_components/` directory.
-2. Copy `www/mtr-destination-card.js` and `www/mtr-traceroute-card.js`
-   into your `config/www/` directory.
+2. Copy `www/mtr-destination-card.js`, `www/mtr-traceroute-card.js`, and
+   `www/mtr-trafficlight-card.js` into your `config/www/` directory.
 3. Restart Home Assistant.
 
 ---
 
 ## Dashboard Card Setup
 
-After installing, register the JS resources so the Lovelace cards are available:
+After installing, register the JS resources so the Lovelace cards are available.
+There are **three cards** included — register all three:
 
 **Home Assistant 2026.4.0+ (new dashboard editor)**
 
@@ -60,13 +61,14 @@ After installing, register the JS resources so the Lovelace cards are available:
 3. Click **Add resource** for each file:
    - URL: `/local/mtr-destination-card.js` — Resource type: **JavaScript module**
    - URL: `/local/mtr-traceroute-card.js` — Resource type: **JavaScript module**
+   - URL: `/local/mtr-trafficlight-card.js` — Resource type: **JavaScript module**
 4. Save and reload the page.
 
 **Alternative (works in all versions)**
 
 1. Go to **Settings → Dashboards**.
 2. Click ⋮ (top-right) → **Resources**.
-3. Add the two entries above.
+3. Add the three entries above.
 
 ---
 
@@ -154,6 +156,38 @@ loss_sensors:
   - sensor.8_8_8_8_hop_2_loss
   - sensor.8_8_8_8_hop_3_loss
 ```
+
+### Card 3: `mtr-trafficlight-card` (Traffic Light View)
+
+Shows a proper traffic light (red/yellow/green) for the destination, followed by a
+compact row per hop — each row has a glowing status dot in traffic-light colours,
+the hop number, hostname / IP, average RTT, and packet loss.
+
+```yaml
+type: custom:mtr-trafficlight-card
+title: "8.8.8.8 (Google DNS)"
+destination_entity: binary_sensor.8_8_8_8_reachable
+rtt_entity: sensor.8_8_8_8_hop_8_rtt       # last hop — used for dest metrics
+loss_entity: sensor.8_8_8_8_hop_8_loss
+rtt_sensors:
+  - sensor.8_8_8_8_hop_1_rtt
+  - sensor.8_8_8_8_hop_2_rtt
+  - sensor.8_8_8_8_hop_3_rtt
+  # … one entry per hop
+loss_sensors:
+  - sensor.8_8_8_8_hop_1_loss
+  - sensor.8_8_8_8_hop_2_loss
+  - sensor.8_8_8_8_hop_3_loss
+```
+
+Traffic light colours for both the destination light and hop dots:
+
+| Colour | Meaning |
+|--------|---------|
+| Green  | `ok` — no packet loss, normal RTT |
+| Amber  | `degraded` — partial loss or elevated RTT |
+| Red    | `timeout` / 100 % loss — destination or hop unreachable |
+| Grey   | No response (`* * *`) or status unknown |
 
 See `sample-dashboard.yaml` for a complete example.
 

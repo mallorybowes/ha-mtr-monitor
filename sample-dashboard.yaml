@@ -56,6 +56,34 @@ views:
           - sensor.8_8_8_8_hop_8_loss
 
       # ----------------------------------------------------------
+      # OPTION 3: Traffic-light card  (dest light + hop rows)
+      # ----------------------------------------------------------
+      - type: custom:mtr-trafficlight-card
+        title: "8.8.8.8 (Google DNS)"
+        destination_entity: binary_sensor.8_8_8_8_reachable
+        # Point rtt_entity / loss_entity to the LAST hop for dest metrics.
+        rtt_entity: sensor.8_8_8_8_hop_8_rtt
+        loss_entity: sensor.8_8_8_8_hop_8_loss
+        rtt_sensors:
+          - sensor.8_8_8_8_hop_1_rtt
+          - sensor.8_8_8_8_hop_2_rtt
+          - sensor.8_8_8_8_hop_3_rtt
+          - sensor.8_8_8_8_hop_4_rtt
+          - sensor.8_8_8_8_hop_5_rtt
+          - sensor.8_8_8_8_hop_6_rtt
+          - sensor.8_8_8_8_hop_7_rtt
+          - sensor.8_8_8_8_hop_8_rtt
+        loss_sensors:
+          - sensor.8_8_8_8_hop_1_loss
+          - sensor.8_8_8_8_hop_2_loss
+          - sensor.8_8_8_8_hop_3_loss
+          - sensor.8_8_8_8_hop_4_loss
+          - sensor.8_8_8_8_hop_5_loss
+          - sensor.8_8_8_8_hop_6_loss
+          - sensor.8_8_8_8_hop_7_loss
+          - sensor.8_8_8_8_hop_8_loss
+
+      # ----------------------------------------------------------
       # Additional monitor: TCP port 443 to cloudflare.com
       # ----------------------------------------------------------
       - type: custom:mtr-destination-card
