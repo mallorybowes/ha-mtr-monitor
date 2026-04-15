@@ -35,7 +35,7 @@ Monitor a destination host and every hop along the path, exactly like the
 ### Via HACS (recommended)
 
 1. Open **HACS** → **Integrations** → ⋮ → **Custom repositories**
-2. Add `https://github.com/yourusername/ha-mtr-monitor` (category: Integration)
+2. Add `https://github.com/mallorybowes/ha-mtr-monitor` (category: Integration)
 3. Install **MTR Network Monitor**
 4. Restart Home Assistant
 
