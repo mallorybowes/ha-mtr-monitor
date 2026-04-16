@@ -3,6 +3,16 @@
 Monitor a destination host and every hop along the path, exactly like the
 `mtr` command-line tool, directly inside Home Assistant.
 
+This is vibeware so use appropriately.  No guarantees.  YMMV...
+
+[Demo.webm](https://github.com/user-attachments/assets/55da6fe9-55ef-483f-b149-5603f33bd35a)
+
+The single route bar graph shows each hop as a segment of the line.  Each segment
+dynamically changes size and color based on the latest rtt values.
+
+The mtr classic card tries to replicate the original mtr gui interface.  Clicking
+on a hop will bring up the last 2 hour history graph.
+
 ---
 
 ## Features
