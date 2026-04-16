@@ -12,7 +12,7 @@ Monitor a destination host and every hop along the path, exactly like the
 | **Protocols** | ICMP echo · TCP SYN · UDP datagram |
 | **Per-hop metrics** | RTT (last / avg / min / max), jitter, packet loss %, sent/received counts |
 | **Reverse DNS** | Hostnames resolved for each hop |
-| **Two dashboard cards** | Destination-only (simple) · Full traceroute (detailed) |
+| **Four dashboard cards** | Destination · Traffic Light · Route Bar · Terminal (mtr-style TUI) |
 | **HA entities** | Binary sensors (reachable / hop health) + Sensors (RTT ms / loss %) |
 | **Config flow** | Full UI setup — no YAML editing required |
 | **Rate limiting** | Configurable inter-packet delay (e.g. 1 packet every 5 s) |
@@ -43,8 +43,9 @@ Monitor a destination host and every hop along the path, exactly like the
 
 1. Copy the `custom_components/mtr_monitor/` folder into your
    `config/custom_components/` directory.
-2. Copy `www/mtr-destination-card.js`, `www/mtr-traceroute-card.js`, and
-   `www/mtr-trafficlight-card.js` into your `config/www/` directory.
+2. Copy `www/mtr-destination-card.js`, `www/mtr-trafficlight-card.js`,
+   `www/mtr-route-bar-card.js`, and `www/mtr-terminal-card.js` into your
+   `config/www/` directory.
 3. Restart Home Assistant.
 
 ---
@@ -52,7 +53,7 @@ Monitor a destination host and every hop along the path, exactly like the
 ## Dashboard Card Setup
 
 After installing, register the JS resources so the Lovelace cards are available.
-There are **three cards** included — register all three:
+There are **four cards** included — register all four:
 
 **Home Assistant 2026.4.0+ (new dashboard editor)**
 
@@ -60,15 +61,16 @@ There are **three cards** included — register all three:
 2. Click the ⋮ menu → **Manage resources**.
 3. Click **Add resource** for each file:
    - URL: `/local/mtr-destination-card.js` — Resource type: **JavaScript module**
-   - URL: `/local/mtr-traceroute-card.js` — Resource type: **JavaScript module**
    - URL: `/local/mtr-trafficlight-card.js` — Resource type: **JavaScript module**
+   - URL: `/local/mtr-route-bar-card.js` — Resource type: **JavaScript module**
+   - URL: `/local/mtr-terminal-card.js` — Resource type: **JavaScript module**
 4. Save and reload the page.
 
 **Alternative (works in all versions)**
 
 1. Go to **Settings → Dashboards**.
 2. Click ⋮ (top-right) → **Resources**.
-3. Add the three entries above.
+3. Add the four entries above.
 
 ---
 
@@ -137,27 +139,7 @@ rtt_entity: sensor.8_8_8_8_hop_8_rtt       # last hop
 loss_entity: sensor.8_8_8_8_hop_8_loss
 ```
 
-### Card 2: `mtr-traceroute-card` (Full MTR View)
-
-Renders a full hop table matching the `mtr` TUI output with animated RTT
-bars and colour-coded status dots.
-
-```yaml
-type: custom:mtr-traceroute-card
-title: "Path to 8.8.8.8"
-destination_entity: binary_sensor.8_8_8_8_reachable
-rtt_sensors:
-  - sensor.8_8_8_8_hop_1_rtt
-  - sensor.8_8_8_8_hop_2_rtt
-  - sensor.8_8_8_8_hop_3_rtt
-  # … add one entry per hop
-loss_sensors:
-  - sensor.8_8_8_8_hop_1_loss
-  - sensor.8_8_8_8_hop_2_loss
-  - sensor.8_8_8_8_hop_3_loss
-```
-
-### Card 3: `mtr-trafficlight-card` (Traffic Light View)
+### Card 2: `mtr-trafficlight-card` (Traffic Light View)
 
 Shows a proper traffic light (red/yellow/green) for the destination, followed by a
 compact row per hop — each row has a glowing status dot in traffic-light colours,
@@ -188,6 +170,89 @@ Traffic light colours for both the destination light and hop dots:
 | Amber  | `degraded` — partial loss or elevated RTT |
 | Red    | `timeout` / 100 % loss — destination or hop unreachable |
 | Grey   | No response (`* * *`) or status unknown |
+
+### Card 3: `mtr-route-bar-card` (Route Bar)
+
+Visualises the entire path as a single horizontal segmented bar.  Each segment
+represents one hop — its **width is proportional to that hop's average RTT** and
+its **colour follows the traffic-light scale**.  Hover over any segment for a
+tooltip showing the full RTT breakdown (avg / last / min / max / jitter) and loss %.
+
+```yaml
+type: custom:mtr-route-bar-card
+title: "Current Route to 8.8.8.8"
+rtt_sensors:
+  - sensor.8_8_8_8_hop_1_rtt
+  - sensor.8_8_8_8_hop_2_rtt
+  - sensor.8_8_8_8_hop_3_rtt
+  # … one entry per hop
+loss_sensors:                   # optional
+  - sensor.8_8_8_8_hop_1_loss
+  - sensor.8_8_8_8_hop_2_loss
+  - sensor.8_8_8_8_hop_3_loss
+rtt_amber: 50                   # ms — below this = green  (default 50)
+rtt_red:   150                  # ms — above this = red    (default 150)
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `rtt_sensors` | — | **Required.** One RTT sensor entity per hop, in order |
+| `loss_sensors` | — | Optional. Loss sensors shown in hover tooltip |
+| `title` | _(none)_ | Card heading |
+| `rtt_amber` | `50` | RTT threshold (ms) above which a segment turns amber |
+| `rtt_red` | `150` | RTT threshold (ms) above which a segment turns red |
+
+Segment colour logic: grey if the hop has no data, is timed out, or sent no
+response; red if status is `degraded` or avg RTT ≥ `rtt_red`; amber if avg RTT ≥
+`rtt_amber`; green otherwise.  When all hops have valid RTT data the bar uses
+proportional widths; if any hop has no data all segments are equal width.
+
+### Card 4: `mtr-terminal-card` (Terminal / MTR TUI)
+
+Replicates the classic `mtr` terminal interface — dark background, monospace
+columns, and full-row colour coding that updates live after every probe.
+
+**Columns:** Host · Loss% · Snt · Last · Avg · Best · Wrst · StDev
+
+**Click any row** to open a 2-hour history popup for that hop's RTT and loss sensors.
+
+```yaml
+type: custom:mtr-terminal-card
+title: "Path to 8.8.8.8"
+destination_entity: binary_sensor.8_8_8_8_reachable   # optional — drives titlebar badge
+columns: 8                                             # grid width 1–12 (default 4)
+rtt_sensors:
+  - sensor.8_8_8_8_hop_1_rtt
+  - sensor.8_8_8_8_hop_2_rtt
+  - sensor.8_8_8_8_hop_3_rtt
+  # … one entry per hop
+loss_sensors:                                          # optional but recommended
+  - sensor.8_8_8_8_hop_1_loss
+  - sensor.8_8_8_8_hop_2_loss
+  - sensor.8_8_8_8_hop_3_loss
+# Optional threshold overrides:
+loss_amber: 10     # % loss → amber row  (default 10)
+loss_red:   50     # % loss → red row    (default 50)
+rtt_amber:  150    # ms avg → amber row  (default 150)
+rtt_red:    400    # ms avg → red row    (default 400)
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `rtt_sensors` | — | **Required.** One RTT sensor entity per hop, in order |
+| `loss_sensors` | — | Optional. Enables the Loss% column and click-to-history popup |
+| `destination_entity` | — | Optional. Binary sensor that drives the UP/DEGRADED/DOWN badge in the titlebar |
+| `title` | `My traceroute` | Title shown in the terminal titlebar |
+| `columns` | `4` | Dashboard grid width (1–12) |
+| `loss_amber` | `10` | Loss % threshold for amber row colour |
+| `loss_red` | `50` | Loss % threshold for red row colour |
+| `rtt_amber` | `150` | Avg RTT (ms) threshold for amber row colour |
+| `rtt_red` | `400` | Avg RTT (ms) threshold for red row colour |
+
+Row colour precedence: a row turns **red** if status is `timeout`, loss ≥ `loss_red`,
+or avg RTT ≥ `rtt_red`; **amber** if status is `degraded`, loss ≥ `loss_amber`, or
+avg RTT ≥ `rtt_amber`; **green** otherwise.  Hops with no response show in grey
+with `(waiting for reply)`.
 
 See `sample-dashboard.yaml` for a complete example.
 
