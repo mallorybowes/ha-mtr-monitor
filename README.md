@@ -323,4 +323,4 @@ action:
 
 ## License
 
-MIT License — feel free to adapt and redistribute.
+CC0 1.0 Universal License — feel free to adapt and redistribute.
